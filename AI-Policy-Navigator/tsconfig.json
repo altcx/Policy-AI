@@ -7,8 +7,8 @@
     "skipLibCheck": true,
     "strict": true,
     "outDir": "build",
-    "rootDir": "./src",
+    "rootDir": "servers",
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*"]
+  "include": ["servers/**/*"]
 }
