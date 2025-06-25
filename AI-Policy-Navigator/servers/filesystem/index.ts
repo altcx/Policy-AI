@@ -39,6 +39,78 @@ const allowedDirectories = args.map(dir =>
   normalizePath(path.resolve(expandHome(dir)))
 );
 
+// Schema definitions moved to module scope so they can be reused across the file
+export const ReadFileArgsSchema = z.object({
+  path: z.string(),
+  tail: z.number().optional().describe('If provided, returns only the last N lines of the file'),
+  head: z.number().optional().describe('If provided, returns only the first N lines of the file')
+});
+
+export const ReadMultipleFilesArgsSchema = z.object({
+  paths: z.array(z.string()),
+});
+
+export const WriteFileArgsSchema = z.object({
+  path: z.string(),
+  content: z.string(),
+});
+
+export const EditOperation = z.object({
+  oldText: z.string().describe('Text to search for - must match exactly'),
+  newText: z.string().describe('Text to replace with')
+});
+
+export const EditFileArgsSchema = z.object({
+  path: z.string(),
+  edits: z.array(EditOperation),
+  dryRun: z.boolean().default(false).describe('Preview changes using git-style diff format')
+});
+
+export const CreateDirectoryArgsSchema = z.object({
+  path: z.string(),
+});
+
+export const ListDirectoryArgsSchema = z.object({
+  path: z.string(),
+});
+
+export const ListDirectoryWithSizesArgsSchema = z.object({
+  path: z.string(),
+  sortBy: z.enum(['name', 'size']).optional().default('name').describe('Sort entries by name or size'),
+});
+
+export const DirectoryTreeArgsSchema = z.object({
+  path: z.string(),
+});
+
+export const MoveFileArgsSchema = z.object({
+  source: z.string(),
+  destination: z.string(),
+});
+
+export const SearchFilesArgsSchema = z.object({
+  path: z.string(),
+  pattern: z.string(),
+  excludePatterns: z.array(z.string()).optional().default([])
+});
+
+export const GetFileInfoArgsSchema = z.object({
+  path: z.string(),
+});
+
+const ToolInputSchema = ToolSchema.shape.inputSchema;
+export type ToolInput = z.infer<typeof ToolInputSchema>;
+
+export interface FileInfo {
+  size: number;
+  created: Date;
+  modified: Date;
+  accessed: Date;
+  isDirectory: boolean;
+  isFile: boolean;
+  permissions: string;
+}
+
 // Validate that all directories exist and are accessible
 async function main() {
   await Promise.all(args.map(async (dir) => {
@@ -95,77 +167,7 @@ async function main() {
     }
   }
 
-  // Schema definitions
-  const ReadFileArgsSchema = z.object({
-    path: z.string(),
-    tail: z.number().optional().describe('If provided, returns only the last N lines of the file'),
-    head: z.number().optional().describe('If provided, returns only the first N lines of the file')
-  });
-
-  const ReadMultipleFilesArgsSchema = z.object({
-    paths: z.array(z.string()),
-  });
-
-  const WriteFileArgsSchema = z.object({
-    path: z.string(),
-    content: z.string(),
-  });
-
-  const EditOperation = z.object({
-    oldText: z.string().describe('Text to search for - must match exactly'),
-    newText: z.string().describe('Text to replace with')
-  });
-
-  const EditFileArgsSchema = z.object({
-    path: z.string(),
-    edits: z.array(EditOperation),
-    dryRun: z.boolean().default(false).describe('Preview changes using git-style diff format')
-  });
-
-  const CreateDirectoryArgsSchema = z.object({
-    path: z.string(),
-  });
-
-  const ListDirectoryArgsSchema = z.object({
-    path: z.string(),
-  });
-
-  const ListDirectoryWithSizesArgsSchema = z.object({
-    path: z.string(),
-    sortBy: z.enum(['name', 'size']).optional().default('name').describe('Sort entries by name or size'),
-  });
-
-  const DirectoryTreeArgsSchema = z.object({
-    path: z.string(),
-  });
-
-  const MoveFileArgsSchema = z.object({
-    source: z.string(),
-    destination: z.string(),
-  });
-
-  const SearchFilesArgsSchema = z.object({
-    path: z.string(),
-    pattern: z.string(),
-    excludePatterns: z.array(z.string()).optional().default([])
-  });
-
-  const GetFileInfoArgsSchema = z.object({
-    path: z.string(),
-  });
-
-  const ToolInputSchema = ToolSchema.shape.inputSchema;
-  type ToolInput = z.infer<typeof ToolInputSchema>;
-
-  interface FileInfo {
-    size: number;
-    created: Date;
-    modified: Date;
-    accessed: Date;
-    isDirectory: boolean;
-    isFile: boolean;
-    permissions: string;
-  }
+  // Server setup helpers and schema definitions are declared at the module scope
 
   // Server setup
   const server = new Server(

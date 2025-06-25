@@ -185,20 +185,7 @@ class KnowledgeGraphManager {
 
 const knowledgeGraphManager = new KnowledgeGraphManager();
 
-
-// The server instance and tools exposed to Claude
-const server = new Server({
-  name: "memory-server",
-  version: "0.6.3",
-},    {
-    capabilities: {
-      tools: {},
-    },
-  },);
-
-server.setRequestHandler(ListToolsRequestSchema, async () => {
-  return {
-    tools: [
+export const tools = [
       {
         name: "create_entities",
         description: "Create multiple new entities in the knowledge graph",
@@ -212,8 +199,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 properties: {
                   name: { type: "string", description: "The name of the entity" },
                   entityType: { type: "string", description: "The type of the entity" },
-                  observations: { 
-                    type: "array", 
+                  observations: {
+                    type: "array",
                     items: { type: "string" },
                     description: "An array of observation contents associated with the entity"
                   },
@@ -259,8 +246,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 type: "object",
                 properties: {
                   entityName: { type: "string", description: "The name of the entity to add the observations to" },
-                  contents: { 
-                    type: "array", 
+                  contents: {
+                    type: "array",
                     items: { type: "string" },
                     description: "An array of observation contents to add"
                   },
@@ -278,10 +265,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         inputSchema: {
           type: "object",
           properties: {
-            entityNames: { 
-              type: "array", 
+            entityNames: {
+              type: "array",
               items: { type: "string" },
-              description: "An array of entity names to delete" 
+              description: "An array of entity names to delete",
             },
           },
           required: ["entityNames"],
@@ -299,10 +286,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 type: "object",
                 properties: {
                   entityName: { type: "string", description: "The name of the entity containing the observations" },
-                  observations: { 
-                    type: "array", 
+                  observations: {
+                    type: "array",
                     items: { type: "string" },
-                    description: "An array of observations to delete"
+                    description: "An array of observations to delete",
                   },
                 },
                 required: ["entityName", "observations"],
@@ -318,8 +305,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         inputSchema: {
           type: "object",
           properties: {
-            relations: { 
-              type: "array", 
+            relations: {
+              type: "array",
               items: {
                 type: "object",
                 properties: {
@@ -329,7 +316,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 },
                 required: ["from", "to", "relationType"],
               },
-              description: "An array of relations to delete" 
+              description: "An array of relations to delete",
             },
           },
           required: ["relations"],
@@ -369,8 +356,20 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ["names"],
         },
       },
-    ],
-  };
+];
+
+// The server instance and tools exposed to Claude
+const server = new Server({
+  name: "memory-server",
+  version: "0.6.3",
+},    {
+    capabilities: {
+      tools: {},
+    },
+  },);
+
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  return { tools };
 });
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
