@@ -241,6 +241,9 @@ You should:
   }
 };
 
+// Export the SEQUENTIAL_THINKING_TOOL for use in main server
+export const tools = [SEQUENTIAL_THINKING_TOOL];
+
 const server = new Server(
   {
     name: "sequential-thinking-server",
@@ -279,7 +282,17 @@ async function runServer() {
   console.error("Sequential Thinking MCP Server running on stdio");
 }
 
-runServer().catch((error) => {
-  console.error("Fatal error running server:", error);
-  process.exit(1);
-});
+// Replace require.main check with ES module check
+if (import.meta.url === `file://${process.argv[1]}`) {
+  // Command line argument parsing
+  const args = process.argv.slice(2);
+  if (args.length === 0) {
+    console.error("Usage: mcp-server-sequentialthinking <allowed-directory> [additional-directories...]");
+    process.exit(1);
+  }
+
+  runServer().catch((error) => {
+    console.error("Fatal error running server:", error);
+    process.exit(1);
+  });
+}

@@ -370,7 +370,20 @@ async function runServer() {
   console.error("Brave Search MCP Server running on stdio");
 }
 
-runServer().catch((error) => {
-  console.error("Fatal error running server:", error);
-  process.exit(1);
-});
+// Replace require.main check with ES module check
+if (import.meta.url === `file://${process.argv[1]}`) {
+  // Command line argument parsing
+  const args = process.argv.slice(2);
+  if (args.length === 0) {
+    console.error("Usage: mcp-server-brave-search <allowed-directory> [additional-directories...]");
+    process.exit(1);
+  }
+
+  runServer().catch((error) => {
+    console.error("Fatal error running server:", error);
+    process.exit(1);
+  });
+}
+
+// Export the tools array for use in main server
+export const tools = [WEB_SEARCH_TOOL, LOCAL_SEARCH_TOOL];

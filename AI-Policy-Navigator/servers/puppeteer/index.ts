@@ -103,6 +103,9 @@ const TOOLS: Tool[] = [
   },
 ];
 
+// Export the TOOLS array for use in main server
+export const tools = TOOLS;
+
 // Global state
 let browser: Browser | null;
 let page: Page | null;
@@ -475,6 +478,18 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 server.setRequestHandler(CallToolRequestSchema, async (request) =>
   handleToolCall(request.params.name, request.params.arguments ?? {})
 );
+
+// Replace require.main check with ES module check
+if (import.meta.url === `file://${process.argv[1]}`) {
+  // Command line argument parsing
+  const args = process.argv.slice(2);
+  if (args.length === 0) {
+    console.error("Usage: mcp-server-puppeteer <allowed-directory> [additional-directories...]");
+    process.exit(1);
+  }
+
+  // ...existing CLI logic...
+}
 
 async function runServer() {
   const transport = new StdioServerTransport();

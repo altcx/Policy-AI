@@ -358,61 +358,71 @@ export const tools = [
       },
 ];
 
-// The server instance and tools exposed to Claude
-const server = new Server({
-  name: "memory-server",
-  version: "0.6.3",
-},    {
-    capabilities: {
-      tools: {},
-    },
-  },);
-
-server.setRequestHandler(ListToolsRequestSchema, async () => {
-  return { tools };
-});
-
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name, arguments: args } = request.params;
-
-  if (!args) {
-    throw new Error(`No arguments provided for tool: ${name}`);
+// Replace require.main check with ES module check
+if (import.meta.url === `file://${process.argv[1]}`) {
+  // Command line argument parsing
+  const args = process.argv.slice(2);
+  if (args.length === 0) {
+    console.error("Usage: mcp-server-memory <allowed-directory> [additional-directories...]");
+    process.exit(1);
   }
 
-  switch (name) {
-    case "create_entities":
-      return { content: [{ type: "text", text: JSON.stringify(await knowledgeGraphManager.createEntities(args.entities as Entity[]), null, 2) }] };
-    case "create_relations":
-      return { content: [{ type: "text", text: JSON.stringify(await knowledgeGraphManager.createRelations(args.relations as Relation[]), null, 2) }] };
-    case "add_observations":
-      return { content: [{ type: "text", text: JSON.stringify(await knowledgeGraphManager.addObservations(args.observations as { entityName: string; contents: string[] }[]), null, 2) }] };
-    case "delete_entities":
-      await knowledgeGraphManager.deleteEntities(args.entityNames as string[]);
-      return { content: [{ type: "text", text: "Entities deleted successfully" }] };
-    case "delete_observations":
-      await knowledgeGraphManager.deleteObservations(args.deletions as { entityName: string; observations: string[] }[]);
-      return { content: [{ type: "text", text: "Observations deleted successfully" }] };
-    case "delete_relations":
-      await knowledgeGraphManager.deleteRelations(args.relations as Relation[]);
-      return { content: [{ type: "text", text: "Relations deleted successfully" }] };
-    case "read_graph":
-      return { content: [{ type: "text", text: JSON.stringify(await knowledgeGraphManager.readGraph(), null, 2) }] };
-    case "search_nodes":
-      return { content: [{ type: "text", text: JSON.stringify(await knowledgeGraphManager.searchNodes(args.query as string), null, 2) }] };
-    case "open_nodes":
-      return { content: [{ type: "text", text: JSON.stringify(await knowledgeGraphManager.openNodes(args.names as string[]), null, 2) }] };
-    default:
-      throw new Error(`Unknown tool: ${name}`);
-  }
-});
+  // The server instance and tools exposed to Claude
+  const server = new Server({
+    name: "memory-server",
+    version: "0.6.3",
+  },    {
+      capabilities: {
+        tools: {},
+      },
+    },);
 
-async function main() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  console.error("Knowledge Graph MCP Server running on stdio");
+  server.setRequestHandler(ListToolsRequestSchema, async () => {
+    return { tools };
+  });
+
+  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    const { name, arguments: args } = request.params;
+
+    if (!args) {
+      throw new Error(`No arguments provided for tool: ${name}`);
+    }
+
+    switch (name) {
+      case "create_entities":
+        return { content: [{ type: "text", text: JSON.stringify(await knowledgeGraphManager.createEntities(args.entities as Entity[]), null, 2) }] };
+      case "create_relations":
+        return { content: [{ type: "text", text: JSON.stringify(await knowledgeGraphManager.createRelations(args.relations as Relation[]), null, 2) }] };
+      case "add_observations":
+        return { content: [{ type: "text", text: JSON.stringify(await knowledgeGraphManager.addObservations(args.observations as { entityName: string; contents: string[] }[]), null, 2) }] };
+      case "delete_entities":
+        await knowledgeGraphManager.deleteEntities(args.entityNames as string[]);
+        return { content: [{ type: "text", text: "Entities deleted successfully" }] };
+      case "delete_observations":
+        await knowledgeGraphManager.deleteObservations(args.deletions as { entityName: string; observations: string[] }[]);
+        return { content: [{ type: "text", text: "Observations deleted successfully" }] };
+      case "delete_relations":
+        await knowledgeGraphManager.deleteRelations(args.relations as Relation[]);
+        return { content: [{ type: "text", text: "Relations deleted successfully" }] };
+      case "read_graph":
+        return { content: [{ type: "text", text: JSON.stringify(await knowledgeGraphManager.readGraph(), null, 2) }] };
+      case "search_nodes":
+        return { content: [{ type: "text", text: JSON.stringify(await knowledgeGraphManager.searchNodes(args.query as string), null, 2) }] };
+      case "open_nodes":
+        return { content: [{ type: "text", text: JSON.stringify(await knowledgeGraphManager.openNodes(args.names as string[]), null, 2) }] };
+      default:
+        throw new Error(`Unknown tool: ${name}`);
+    }
+  });
+
+  async function main() {
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+    console.error("Knowledge Graph MCP Server running on stdio");
+  }
+
+  main().catch((error) => {
+    console.error("Fatal error in main():", error);
+    process.exit(1);
+  });
 }
-
-main().catch((error) => {
-  console.error("Fatal error in main():", error);
-  process.exit(1);
-});

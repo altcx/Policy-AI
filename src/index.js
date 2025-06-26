@@ -5,32 +5,23 @@ import { tools as memoryTools } from "../AI-Policy-Navigator/servers/memory/inde
 import { tools as braveSearchTools } from "../AI-Policy-Navigator/servers/brave-search/index.js";
 import { tools as puppeteerTools } from "../AI-Policy-Navigator/servers/puppeteer/index.js";
 import { tools as sequentialThinkingTools } from "../AI-Policy-Navigator/servers/sequentialthinking/index.js";
-
 const app = express();
-
 // Aggregate all tools
 const allTools = [
-  ...filesystemTools,
-  ...memoryTools,
-  ...braveSearchTools,
-  ...puppeteerTools,
-  ...sequentialThinkingTools,
+    ...filesystemTools,
+    ...memoryTools,
+    ...braveSearchTools,
+    ...puppeteerTools,
+    ...sequentialThinkingTools,
 ];
-
 // Example server instantiation (adjust as needed for your use case)
-const server = new Server(
-  {
+const server = new Server({
     name: "PolicyAI Server",
     version: "1.0.0",
-  },
-  {
-    capabilities: {}
-  }
-);
-
-// TODO: Register tools with the server if the SDK provides a method for this
-// Example: server.registerTools(allTools);
-
-(app as any).listen(3000, () =>
-  console.log("✅ MCP server running on http://localhost:3000")
-);
+}, {
+    // Add any server options here
+    capabilities: {},
+    // Optionally, you can add tools here if the SDK supports it
+    // tools: allTools
+});
+app.listen(3000, () => console.log("✅ MCP server running on http://localhost:3000"));
